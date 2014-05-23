@@ -90,6 +90,7 @@ function rotateKeyExchange(charMap,tokenMap)
 			local repl = tokenMap[idx]
 			table.insert(newMap,repl)
 		end
+
 	end
 	return newMap
 end
@@ -106,8 +107,10 @@ function encode(files,token)
 			handle = fs.open(v.."_new","w")
 			for _,v in pairs(rMap) do
 				handle.write(v)
+				sleep(.1)
 			end
 			handle.close()
+			sleep(.1)
 		end
 	end
 end
@@ -130,9 +133,9 @@ if pullUpdates then
             requesting = false
             return false
         end
+
     end
 end
 
 tok = read()
-print(tok)
 encode(tArgs,tok)
