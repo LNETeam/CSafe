@@ -66,6 +66,7 @@ end
 function getCharIndex(letter)
 	local idxC = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"}
 	local idxc = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
+	local puncIDX = {"~","!","@","#","$","%","^","&","*","(",")","_","-","=","+","\\","|","]","}","{","[","\"","'",":",";","/","?",">","<",".",","}
 	for k,v in ipairs(idxC) do
 		if v == letter then
 			return k
@@ -76,21 +77,35 @@ function getCharIndex(letter)
 			return k
 		end
 	end
+	for k,v in ipairs(puncIDX) do
+		if v == letter then
+			if k > 26 then
+				return -2,idxc[k]
+			else
+				return -2,idxC[k]
+			end
+		end
+	end
 	return -1
 end
 
 function rotateKeyExchange(charMap,tokenMap)
 	local newMap = {}
 	for k,v in pairs(charMap) do
-		local idx = getCharIndex(v)
+		local opt,idx = getCharIndex(v)
 		if idx == -1 then
 			table.insert(newMap,v)
 		else
 			print(idx)
-			local repl = tokenMap[idx]
+			local repl = nil
+			if opt == -2 then
+				repl = idx
+			else
+				repl = tokenMap[idx]
+			end
 			table.insert(newMap,repl)
+			opt,idx = nil,nil
 		end
-
 	end
 	return newMap
 end
@@ -107,10 +122,8 @@ function encode(files,token)
 			handle = fs.open(v.."_new","w")
 			for _,v in pairs(rMap) do
 				handle.write(v)
-				sleep(.1)
 			end
 			handle.close()
-			sleep(.1)
 		end
 	end
 end
