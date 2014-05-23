@@ -32,7 +32,65 @@ tokens = {
 ".",
 ","
 }
-shell.run("misc")
+
+local idxC = {
+"A",
+"B",
+"C",
+"D",
+"E",
+"F",
+"G",
+"H",
+"I",
+"J",
+"K",
+"L",
+"M",
+"N",
+"O",
+"P",
+"Q",
+"R",
+"S",
+"T",
+"U",
+"V",
+"W",
+"X",
+"Y",
+"Z"
+}
+
+local idxc = {
+"a",
+"b",
+"c",
+"d",
+"e",
+"f",
+"g",
+"h",
+"i",
+"j",
+"k",
+"l",
+"m",
+"n",
+"o",
+"p",
+"q",
+"r",
+"s",
+"t",
+"u",
+"v",
+"w",
+"x",
+"y",
+"z"
+}
+
 local pullUpdates = false
 local logging = true
 local log = nil
@@ -83,9 +141,7 @@ function split(s)
 end
 
 function getCharIndex(letter)
-	local idxC = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"}
-	local idxc = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
-	local puncIDX = {"~","!","@","#","$","%","^","&","*","(",")","_","-","=","+","\\","|","]","}","{","[","\"","'",":",";","/","?",">","<",".",","}
+    local puncIDX = {"~","!","@","#","$","%","^","&","*","(",")","_","-","=","+","\\","|","]","}","{","[","\"","'",":",";","/","?",">","<",".",","}
 	for k,v in ipairs(idxC) do
 		if v == letter then
 			return false,k
@@ -98,11 +154,7 @@ function getCharIndex(letter)
 	end
 	for k,v in ipairs(puncIDX) do
 		if v == letter then
-			if k > 26 then
-				return true,idxc[k]
-			else
-	 			return true,idxC[k]
-	 		end
+			return true,k
 	 	end
 	 end
 	return true,-1
@@ -117,7 +169,12 @@ function rotateKeyExchange(charMap,tokenMap)
 		else
 			local repl = nil
 			if opt then
-				repl = idx
+				if idx <= 26 then
+					repl = idxC[idx]
+				elseif k > 26 then
+					temp = idx-26
+					repl = idxc[temp]
+				end
 			else
 				repl = tokenMap[idx]
 			end
