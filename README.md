@@ -1,0 +1,4 @@
+CSafe
+=====
+
+Encryption Library
