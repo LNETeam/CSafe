@@ -1,43 +1,62 @@
 --Created by LNETeam 32 tokens
 tokens = {
-	"~",
-	"!",
-	"@",
-	"#",
-	"$",
-	"%",
-	"^",
-	"&",
-	"*",
-	"(",
+"~",
+"!",
+"@",
+"#",
+"$",
+"%",
+"^",
+"&",
+"*",
+"(",
 	")",
-	"_",
-	"-",
-	"=",
-	"+",
-	"\\",
-	"|",
-	"]",
-	"}",
-	"{",
-	"[",
-	"\"",
-	"'",
-	":",
-	";",
-	"/",
-	"?",
-	">",
-	"<",
-	".",
-	","
+"_",
+"-",
+"=",
+"+",
+"\\",
+"|",
+"]",
+"}",
+"{",
+"[",
+"\"",
+"'",
+":",
+";",
+"/",
+"?",
+">",
+"<",
+".",
+","
 }
-
+shell.run("misc")
 local pullUpdates = false
+local logging = true
+local log = nil
+local time = 0
+if fs.exists("log") then
+	log= fs.open("log", 'w')
+else
+	log= fs.open("log", 'a')
+end
+
+if logging then
+	log.write("==========================")
+	time = os.time()
+	log.write("\nLogging started at: ".. time)
+end
 
 tArgs = {...}
 
-function validateKeyToken(token)
+if #tArgs < 1 then
+	print("Usage: encman [filename(s)]")
+	return
+end
+function main()
+	function validateKeyToken(token)
 	--Explode String to evaluate genuity
 	chars = split(token,"")
 	eval = {}
@@ -58,7 +77,7 @@ end
 function split(s)
 	local words = {}
 	for w in string.gmatch(s,".") do
-    	table.insert(words, w) 
+		table.insert(words, w) 
 	end
 	return words
 end
@@ -69,24 +88,24 @@ function getCharIndex(letter)
 	local puncIDX = {"~","!","@","#","$","%","^","&","*","(",")","_","-","=","+","\\","|","]","}","{","[","\"","'",":",";","/","?",">","<",".",","}
 	for k,v in ipairs(idxC) do
 		if v == letter then
-			return k
+			return false,k
 		end
 	end
 	for k,v in ipairs(idxc) do
 		if v == letter then
-			return k
+			return false,k
 		end
 	end
 	for k,v in ipairs(puncIDX) do
 		if v == letter then
 			if k > 26 then
-				return -2,idxc[k]
+				return true,idxc[k]
 			else
-				return -2,idxC[k]
-			end
-		end
-	end
-	return -1
+	 			return true,idxC[k]
+	 		end
+	 	end
+	 end
+	return true,-1
 end
 
 function rotateKeyExchange(charMap,tokenMap)
@@ -96,9 +115,8 @@ function rotateKeyExchange(charMap,tokenMap)
 		if idx == -1 then
 			table.insert(newMap,v)
 		else
-			print(idx)
 			local repl = nil
-			if opt == -2 then
+			if opt then
 				repl = idx
 			else
 				repl = tokenMap[idx]
@@ -107,16 +125,20 @@ function rotateKeyExchange(charMap,tokenMap)
 			opt,idx = nil,nil
 		end
 	end
+	log.write("\n\nNew Map:" .. textutils.serialize(newMap))
 	return newMap
 end
 
 function encode(files,token)
 	result, map = validateKeyToken(token)
+	log.write("\nKey Token Passed: " ..tostring(result))
+	log.write("\n\nKey Token Map: ".. textutils.serialize(map))
 	if result then
 		for _,v in pairs(files) do
 			handle = fs.open(v,"r")
 			text = handle.readAll()			
 			preenc = split(text)
+			log.write("\n\nKey Character Map: ".. textutils.serialize(preenc))
 			handle.close()
 			rMap = rotateKeyExchange(preenc,map)
 			handle = fs.open(v.."_new","w")
@@ -130,25 +152,43 @@ end
 
 if pullUpdates then
 	http.request("https://raw.githubusercontent.com/LNETeam/CSafe/master/encman/encman")
-    local requesting = true
-    while requesting do
-        local event, url, sourceText = os.pullEvent()
-        if event == "http_success" then
-            local respondedText = sourceText.readAll()
-            fs.delete("encman")
-            temp = io.open("encman",'w')
-            temp:write(respondedText)
-            temp:close()
-            requesting = false
-            return true
-        elseif event == "http_failure" then
-            print("Fetch failed! Please check values or non-existent project!")
-            requesting = false
-            return false
-        end
+	local requesting = true
+	while requesting do
+		local event, url, sourceText = os.pullEvent()
+		if event == "http_success" then
+			local respondedText = sourceText.readAll()
+			fs.delete("encman")
+			temp = io.open("encman",'w')
+			temp:write(respondedText)
+			temp:close()
+			requesting = false
+			return true
+			elseif event == "http_failure" then
+				print("Fetch failed! Please check values or non-existent project!")
+				requesting = false
+				return false
+			end
 
-    end
+		end
+	end
+
+	tok = read()
+	log.write("\n\nFiles: "..textutils.serialize(tArgs))
+	log.write("\n\nKey input: "..tok)
+	encode(tArgs,tok)
 end
 
-tok = read()
-encode(tArgs,tok)
+local stat,code = pcall(main)
+
+if not stat then
+	log.write("\nError: "..code)
+end
+
+log.write("\n\nTime to complete: ".. os.time()-time)
+
+log.flush()
+log.close()
+
+if not logging then
+	fs.delete("log")
+end
