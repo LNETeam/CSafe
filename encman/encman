@@ -1,1 +1,138 @@
---LNETeam
+--Created by LNETeam 32 tokens
+tokens = {
+	"~",
+	"!",
+	"@",
+	"#",
+	"$",
+	"%",
+	"^",
+	"&",
+	"*",
+	"(",
+	")",
+	"_",
+	"-",
+	"=",
+	"+",
+	"\\",
+	"|",
+	"]",
+	"}",
+	"{",
+	"[",
+	"\"",
+	"'",
+	":",
+	";",
+	"/",
+	"?",
+	">",
+	"<",
+	".",
+	","
+}
+
+local pullUpdates = false
+
+tArgs = {...}
+
+function validateKeyToken(token)
+	--Explode String to evaluate genuity
+	chars = split(token,"")
+	eval = {}
+	correct = 0
+	for k,v in pairs(chars) do
+		for _,tok in pairs(tokens) do
+			if tok == v then
+				correct = correct + 1
+			end
+		end
+	end
+	if correct < 26 then
+		error("Invalid token detected or not enough characters (26). No numbers or letters.")
+	end
+	return true,chars
+end
+
+function split(s)
+	local words = {}
+	for w in string.gmatch(s,".") do
+    	table.insert(words, w) 
+	end
+	return words
+end
+
+function getCharIndex(letter)
+	local idxC = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"}
+	local idxc = {"a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"}
+	for k,v in ipairs(idxC) do
+		if v == letter then
+			return k
+		end
+	end
+	for k,v in ipairs(idxc) do
+		if v == letter then
+			return k
+		end
+	end
+	return -1
+end
+
+function rotateKeyExchange(charMap,tokenMap)
+	local newMap = {}
+	for k,v in pairs(charMap) do
+		local idx = getCharIndex(v)
+		if idx == -1 then
+			table.insert(newMap,v)
+		else
+			print(idx)
+			local repl = tokenMap[idx]
+			table.insert(newMap,repl)
+		end
+	end
+	return newMap
+end
+
+function encode(files,token)
+	result, map = validateKeyToken(token)
+	if result then
+		for _,v in pairs(files) do
+			handle = fs.open(v,"r")
+			text = handle.readAll()			
+			preenc = split(text)
+			handle.close()
+			rMap = rotateKeyExchange(preenc,map)
+			handle = fs.open(v.."_new","w")
+			for _,v in pairs(rMap) do
+				handle.write(v)
+			end
+			handle.close()
+		end
+	end
+end
+
+if pullUpdates then
+	http.request("https://raw.githubusercontent.com/LNETeam/CSafe/master/encman/encman")
+    local requesting = true
+    while requesting do
+        local event, url, sourceText = os.pullEvent()
+        if event == "http_success" then
+            local respondedText = sourceText.readAll()
+            fs.delete("encman")
+            temp = io.open("encman",'w')
+            temp:write(respondedText)
+            temp:close()
+            requesting = false
+            return true
+        elseif event == "http_failure" then
+            print("Fetch failed! Please check values or non-existent project!")
+            requesting = false
+            return false
+        end
+    end
+end
+
+tok = read()
+print(tok)
+encode(tArgs,tok)
