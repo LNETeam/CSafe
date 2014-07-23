@@ -2,5 +2,3 @@ CSafe
 =====
 
 Encryption Library
-
-Test
