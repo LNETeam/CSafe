@@ -1,4 +1,4 @@
 CSafe
 =====
-RTY
+v: 1.0
 Encryption Library
