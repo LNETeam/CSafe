@@ -1,4 +1,4 @@
-CSafeT
+CSafe
 =====
 
 Encryption Library
